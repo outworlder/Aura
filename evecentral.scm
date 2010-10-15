@@ -2,6 +2,7 @@
 (use uri-common)
 (use http-client)
 (use intarweb)
+(use sxpath)
 
 ;; Eve central market data
 
@@ -39,25 +40,30 @@
 ;; EVE Central parsing
 
 (define-record market-data volume average max min standard-deviation median)
-(define-record market-item typeid type stat)
+(define-record market-item typeid type data)
 
 (define (parse-marketstat sxml)
-  #f)
+  (map (lambda (item)
+	 (parse-market-item item)) ((sxpath '(// marketstat *)) sxml)))
 
 ;; (define (parse-market-stat-response xml)
 ;;   (map (lambda (item)
 ;; 	 )((sxpath '(// marketstat type)) marketstat-response))
 
 (define (parse-market-item item)
-  (let ([type-id (cadar ((sxpath '(// marketstat type @ id)) item))]
-	[node ])
+  (let ([type-id (string->number (cadar ((sxpath '(@ id)) item)))]
+	[node ((sxpath '(*)) item)])
+    (map (lambda (subnode)
+	   (let ([type (car subnode)]
+		 [data (parse-market-data (cdr subnode))])
+	     (apply make-market-item (list type-id type data)))) node)))
+    
 
 (define (parse-market-data alist)
-  (apply make-market-data (get-data alist 'volume 'avg 'max 'min 'stddev 'median)))
+  (apply make-market-data (all->number (get-data alist 'volume 'avg 'max 'min 'stddev 'median))))
 
 (define (get-data alist #!rest keys)
   (map (lambda (item)
-	 (print item)
 	 (cdr (assoc item alist))) keys))
 
 ;; Utility functions
@@ -67,3 +73,7 @@
 	     (lambda (item)
 	       (cdr item)) alist)
 	    alist))
+
+(define (all->number list)
+  (map (lambda (item)
+	 (string->number (car item))) list))
