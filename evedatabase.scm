@@ -1,10 +1,36 @@
 (use sql-de-lite)
 (use coops)
+(use aql)
 
 ;; (define-class model () (id))
 
-(define *database* #f)
+(define *database-url* #f)
+(define *connection* #f)
 
+(define-class <table> ()
+  (name columns (relationships initform: '())))
+
+(define-class <model> ()
+  (table))
+
+(define-class <invcategories> (<model>)
+  (category-id category-name description graphic-id published))
+
+(define-class <invgroups> (<model>)
+  ())
+
+(define-class <invtypereactions> (<model>)
+  ())
+
+(define-method (load-data (table )) )
+
+;(make <table> name: "teste" columns: '(categoryID categoryName description graphicID published) relationships: '())
+
+(define-syntax define-table
+  (syntax-rules ()
+    ([_ table-name database-table-name (table-columns ...)]
+     (define table-name
+       (make <table> 'name 'database-table-name 'columns '(table-columns ...))))))
 
 "select * from invcategories where categoryID in (41,42,43);"
 [
