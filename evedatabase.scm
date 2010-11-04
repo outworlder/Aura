@@ -26,11 +26,14 @@
 
 ;(make <table> name: "teste" columns: '(categoryID categoryName description graphicID published) relationships: '())
 
-(define-syntax define-table
+(define-syntax define-model
   (syntax-rules ()
-    ([_ table-name database-table-name (table-columns ...)]
-     (define table-name
-       (make <table> 'name 'database-table-name 'columns '(table-columns ...))))))
+    ([_ model-name database-table-name (table-columns ...)]
+     (let ([table-definition (make <table> 'name 'database-table-name 'columns '(table-columns ...))])
+       (define-class model-name (<model>)
+	 (table-columns ... (table initform: table-definition) ))
+       (define-method (list-columns ())
+	 '(table-columns ...))))))
 
 "select * from invcategories where categoryID in (41,42,43);"
 [
