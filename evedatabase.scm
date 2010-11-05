@@ -22,7 +22,8 @@
 (define-class <invtypereactions> (<model>)
   ())
 
-(define-method (load-data (table )) )
+(define-method (load-data (table <table>)
+			  #f))
 
 ;(make <table> name: "teste" columns: '(categoryID categoryName description graphicID published) relationships: '())
 
