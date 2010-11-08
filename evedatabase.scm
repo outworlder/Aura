@@ -1,6 +1,6 @@
-(use sql-de-lite)
+;(use sql-de-lite)
 (use coops)
-(use aql)
+;(use aql)
 
 ;; (define-class model () (id))
 
@@ -22,8 +22,8 @@
 (define-class <invtypereactions> (<model>)
   ())
 
-(define-method (load-data (table <table>)
-			  #f))
+(define-method (load-data (table <table>))
+			  #f)
 
 ;(make <table> name: "teste" columns: '(categoryID categoryName description graphicID published) relationships: '())
 
@@ -33,15 +33,15 @@
      (let ([table-definition (make <table> 'name 'database-table-name 'columns '(table-columns ...))])
        (define-class model-name (<model>)
 	 (table-columns ... (table initform: table-definition) ))
-       (define-method (list-columns ())
-	 '(table-columns ...))))))
+       (define-method (list-columns (model <model>))
+	 (slot-value 'columns model))))))
 
-"select * from invcategories where categoryID in (41,42,43);"
-[
-    { "categoryID" : """41""", "categoryName" : """Planetary Interaction""", "description" : """Stuff for planetary interaction""", "graphicID" : """""", "published" : """0""" },
-    { "categoryID" : """42""", "categoryName" : """Planetary Resources""", "description" : """These are Items that can be extracted from a planet. """, "graphicID" : """""", "published" : """1""" },
-    { "categoryID" : """43""", "categoryName" : """Planetary Commodities""", "description" : """""", "graphicID" : """""", "published" : """1""" },
-]
+;; "select * from invcategories where categoryID in (41,42,43);"
+;; [
+;;     { "categoryID" : """41""", "categoryName" : """Planetary Interaction""", "description" : """Stuff for planetary interaction""", "graphicID" : """""", "published" : """0""" },
+;;     { "categoryID" : """42""", "categoryName" : """Planetary Resources""", "description" : """These are Items that can be extracted from a planet. """, "graphicID" : """""", "published" : """1""" },
+;;     { "categoryID" : """43""", "categoryName" : """Planetary Commodities""", "description" : """""", "graphicID" : """""", "published" : """1""" },
+;; ]
 
 ;; Retrieve a list of planetary interaction items
 "select * from invgroups as i join invcategories as j on i.categoryID = j.categoryID 
@@ -55,8 +55,8 @@
 
 ;; Getting the typeIDs above allows us to check how they are reacted together
 "select * from invtypereactions limit 1"
-[
-    { "reactionTypeID" : """16868""", "input" : """0""", "typeID" : """3645""", "quantity" : """95""" },
-]
+;; [
+;;     { "reactionTypeID" : """16868""", "input" : """0""", "typeID" : """3645""", "quantity" : """95""" },
+;; ]
 
 ;; This will be enough for PI. For ship manufacturing, understanding of blueprints is required.
