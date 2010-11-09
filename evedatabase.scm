@@ -1,6 +1,6 @@
 ;(use sql-de-lite)
 (use coops)
-;(use aql)
+(use aql)
 
 ;; (define-class model () (id))
 
@@ -22,8 +22,8 @@
 (define-class <invtypereactions> (<model>)
   ())
 
-(define-method (load-data (table <table>))
-			  #f)
+;; (define-method (load-data (table <table>))
+;; 			  #f)
 
 ;(make <table> name: "teste" columns: '(categoryID categoryName description graphicID published) relationships: '())
 
@@ -32,9 +32,22 @@
     ([_ model-name database-table-name (table-columns ...)]
      (let ([table-definition (make <table> 'name 'database-table-name 'columns '(table-columns ...))])
        (define-class model-name (<model>)
-	 (table-columns ... (table initform: table-definition) ))
-       (define-method (list-columns (model <model>))
-	 (slot-value 'columns model))))))
+	 (table-columns ... (table initform: table-definition) )) ))))
+
+(define-method (get-table-class (model <model>))
+  (slot-value model 'table))
+
+(define-method (get-table-name (model <model>))
+  (slot-value (get-table-class model) 'name))
+
+(define-method (list-columns (model <model>))
+  (slot-value (get-table-class model) 'columns))
+
+(define-method (all (model <model>))
+  `(from ,(get-table-name model) (,@(list-columns model))))
+
+(define-method (first (model <model>))
+  `(from ,(get-table-name model) (,@(list-columns model)) (limit 1)))
 
 ;; "select * from invcategories where categoryID in (41,42,43);"
 ;; [
