@@ -1,4 +1,4 @@
-;(use sql-de-lite)
+(use sql-de-lite)
 (use coops)
 (use aql)
 
@@ -44,10 +44,19 @@
   (slot-value (get-table-class model) 'columns))
 
 (define-method (all (model <model>))
-  `(from ,(get-table-name model) (,@(list-columns model))))
+  (execute-sql (eval `(from ,(get-table-name model) (,@(list-columns model))))))
 
 (define-method (first (model <model>))
-  `(from ,(get-table-name model) (,@(list-columns model)) (limit 1)))
+  (execute-sql (eval `(from ,(get-table-name model) (,@(list-columns model)) (limit 1)))))
+
+(define-method (save (model <model>))
+  #f)
+
+(define (execute-sql stmt)
+  (call-with-database *database-url*
+		      (lambda (database)
+			(query fetch-all (sql database stmt)))))
+
 
 ;; "select * from invcategories where categoryID in (41,42,43);"
 ;; [
