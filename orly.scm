@@ -4,8 +4,8 @@
 
 ;; (define-class model () (id))
 
-(define *database-url* #f)
-(define *connection* #f)
+(define *database-url*
+  (make-parameter "eve.db"))
 
 (define-class <table> ()
   (name columns (relationships initform: '())))
@@ -40,7 +40,7 @@
     (let* ([klass (make class)]
 	   [table-name (get-table-name klass)]
 	   [table-columns (list-columns klass)])
-      (car (load-data class (execute-sql (eval (cons '(limit 1) (make-select table-columns table-name conditions: conditions))))))))
+      (car (load-data class (execute-sql (eval (append (make-select table-columns table-name conditions: conditions) '((limit 1)))))))))
 
 (define (make-select columns table #!key conditions)
   `(from ,table (,@columns) ,conditions))
@@ -52,7 +52,7 @@
   #f)
 
 (define (execute-sql stmt)
-  (call-with-database *database-url*
+  (call-with-database (*database-url*)
 		      (lambda (database)
 			(print "Executing: " stmt)
 			(query fetch-all (sql database stmt)))))
@@ -63,3 +63,8 @@
 	   (for-each (lambda (column model-column)
 		       (set! (slot-value newobject model-column) column)) row (list-columns newobject))
 	   newobject)) data))
+
+;; (define-syntax has-many
+;;   (syntax-rules (through:)
+;;     ([_ model through: field]
+;;      (define ))))
