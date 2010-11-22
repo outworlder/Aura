@@ -1,5 +1,3 @@
-;; (define-class model () (id))
-
 (define *database-url*
   (make-parameter "tyr104-sqlite3-v1.db"))
 
@@ -20,11 +18,12 @@
 (define-syntax car-if-not-empty
   (syntax-rules ()
     ([_ expression]
-     (if (null? expression)
-         expression
-         (if (list? expression)
-             (car expression)
-             expression)))))
+     (let ([result expression])
+       (if (null? result)
+	   result
+	   (if (list? result)
+	       (car result)
+	       result))))))
 
 ;; Simplification: the first column will be the ID
 (define-syntax define-model
@@ -103,8 +102,3 @@
                (for-each (lambda (column model-column)
                            (set! (slot-value newobject model-column) column)) row (list-columns newobject))
                newobject)) data)))
-
-;; (define-syntax has-many
-;;   (syntax-rules (through:)
-;;     ([_ model through: field]
-;;      (define ))))
