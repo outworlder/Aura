@@ -1,7 +1,3 @@
-(use aql)
-(use sql-de-lite)
-(use coops)
-
 ;; (define-class model () (id))
 
 (define *database-url*
@@ -12,38 +8,6 @@
 
 (define-class <model> ()
   (table))
-
-;; Simplification: the first column will be the ID
-(define-syntax define-model
-  (syntax-rules ()
-    ([_ model-name database-table-name (table-columns ...)]
-     (let ([table-definition (make <table> 'name 'database-table-name 'columns '(table-columns ...))])
-       (define-class model-name (<model>)
-	 (table-columns ... (table initform: table-definition) )) ))))
-
-(define-method (get-table-class (model <model>))
-  (slot-value model 'table))
-
-(define-method (get-table-name (model <model>))
-  (slot-value (get-table-class model) 'name))
-
-(define-method (list-columns (model <model>))
-  (slot-value (get-table-class model) 'columns))
-
-(define (all class #!key conditions)
-  (with-model class
-              (lambda (class table-name table-columns)
-                (load-data class (execute-sql (eval (make-select table-columns table-name conditions: conditions)))))))
-
-(define (first class #!key conditions)
-  (with-model class
-              (lambda (class table-name table-columns)
-                (car-if-not-empty (load-data class (execute-sql (eval (append (make-select table-columns table-name conditions: conditions) '((limit 1))))))))))
-
-(define (find-by-id class id)
-  (with-model class
-              (lambda (class table-name table-columns)
-                (car-if-not-empty (load-data class (execute-sql (eval (append (make-select table-columns table-name) `((where (= (quote ,(car table-columns)) ,id)))))))))))
 
 (define-syntax with-model
   (syntax-rules ()
@@ -61,6 +25,60 @@
          (if (list? expression)
              (car expression)
              expression)))))
+
+;; Simplification: the first column will be the ID
+(define-syntax define-model
+  (syntax-rules ()
+    ([_ model-name database-table-name (table-columns ...)]
+     (let ([table-definition (make <table> 'name 'database-table-name 'columns '(table-columns ...))])
+       (define-class model-name (<model>)
+	 (table-columns ... (table initform: table-definition) )) ))))
+
+(define-syntax has-many
+  (syntax-rules (foreign-key:)
+    ([_ parent child method-name foreign-key: column-name]
+     (define-method (method-name (model parent))
+       (find-all-by-id child (slot-value model (quote column-name)))))))
+
+;(has-many <planet-schematics> <planet-schematics-typemap> typemaps foreign-key: schematicID)
+
+(define-syntax belongs-to
+  (syntax-rules (foreign-key:)
+    ([_ child parent method-name foreign-key: column-name]
+     (define-method (method-name (model child))
+       (find-by-id parent (slot-value model (quote column-name) ))))))
+
+
+;(belongs-to <planet-schematics-typemap> <planet-schematics> schematic foreign-key: schematicID)
+(define-method (get-table-class (model <model>))
+  (slot-value model 'table))
+
+(define-method (get-table-name (model <model>))
+  (slot-value (get-table-class model) 'name))
+
+(define-method (list-columns (model <model>))
+  (slot-value (get-table-class model) 'columns))
+
+(define (find-all class #!key conditions)
+  (with-model class
+              (lambda (class table-name table-columns)
+                (load-data class (execute-sql (eval (make-select table-columns table-name conditions: conditions)))))))
+
+(define (find-first class #!key conditions)
+  (with-model class
+              (lambda (class table-name table-columns)
+                (car-if-not-empty (load-data class (execute-sql (eval (append (make-select table-columns table-name conditions: conditions) '((limit 1))))))))))
+
+(define (find-by-id class id)
+  (with-model class
+              (lambda (class table-name table-columns)
+                (car-if-not-empty (load-data class (execute-sql (eval (append (make-select table-columns table-name) `((where (= (quote ,(car table-columns)) ,id)))))))))))
+
+(define (find-all-by-id class id)
+  (with-model class
+              (lambda (class table-name table-columns)
+                (load-data class (execute-sql (eval (append (make-select table-columns table-name) `((where (= (quote ,(car table-columns)) ,id))))))))))
+
 
 (define (make-select columns table #!key conditions id)
   `(from ,table (,@columns) ,conditions))
