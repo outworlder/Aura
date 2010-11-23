@@ -34,19 +34,32 @@
 	 (table-columns ... (table initform: table-definition) )) ))))
 
 (define-syntax has-many
-  (syntax-rules (foreign-key:)
+  (syntax-rules (foreign-key: primary-key:)
+    ([_ parent child method-name foreign-key: column-name primary-key: key-name]
+     (define-method (method-name (model parent))
+       (find-all-by-id child (slot-value model (quote column-name)) primary-key: (quote key-name))))
     ([_ parent child method-name foreign-key: column-name]
      (define-method (method-name (model parent))
-       (find-all-by-id child (slot-value model (quote column-name)))))))
+       (find-all-by-id child (slot-value model (quote column-name)) primary-key: (quote column-name))))))
 
 ;(has-many <planet-schematics> <planet-schematics-typemap> typemaps foreign-key: schematicID)
 
 (define-syntax belongs-to
-  (syntax-rules (foreign-key:)
+  (syntax-rules (foreign-key: primary-key:)
+    ([_ child parent method-name foreign-key: column-name primary-key: key-name]
+     (define-method (method-name (model child))
+       (find-by-id parent (slot-value model (quote column-name)) primary-key: (quote key-name))))
     ([_ child parent method-name foreign-key: column-name]
      (define-method (method-name (model child))
        (find-by-id parent (slot-value model (quote column-name) ))))))
 
+;; (define-syntax has-and-belongs-to-many
+;;   (syntax-rules (foreign-keys:)
+;;     ([_ parent child method-name foreign-key: (column-names)]
+;;      (define-method (method-name (model parent))
+;;        (find-all-by-id child (slot-value model (quote column-name)))))))
+
+;; (has-and-belongs-to-many <planet-schematics> <planet-schematics-typemap> <inventory-types> foreign-keys: (schematicID typeID))
 
 ;(belongs-to <planet-schematics-typemap> <planet-schematics> schematic foreign-key: schematicID)
 (define-method (get-table-class (model <model>))
@@ -68,19 +81,24 @@
               (lambda (class table-name table-columns)
                 (car-if-not-empty (load-data class (execute-sql (eval (append (make-select table-columns table-name conditions: conditions) '((limit 1))))))))))
 
-(define (find-by-id class id)
+; Optimize this! It should ask the database for just one row
+(define (find-by-id class id #!key primary-key)
+  (car-if-not-empty (find-all-by-id class id primary-key: primary-key)))
+
+(define (find-all-by-id class id #!key primary-key)
   (with-model class
               (lambda (class table-name table-columns)
-                (car-if-not-empty (load-data class (execute-sql (eval (append (make-select table-columns table-name) `((where (= (quote ,(car table-columns)) ,id)))))))))))
-
-(define (find-all-by-id class id)
-  (with-model class
-              (lambda (class table-name table-columns)
-                (load-data class (execute-sql (eval (append (make-select table-columns table-name) `((where (= (quote ,(car table-columns)) ,id))))))))))
+		(let ([key (if primary-key
+			       primary-key
+			       (car table-columns))])
+		  (load-data class (execute-sql (eval (append (make-select table-columns table-name conditions: `(where (= (quote ,key) ,id)))))))))))
 
 
-(define (make-select columns table #!key conditions id)
-  `(from ,table (,@columns) ,conditions))
+(define (make-select columns table #!key conditions id limit)
+  (let ([limit-stmt (if limit
+			`(limit ,limit)
+			#f)])
+    `(from ,table (,@columns) ,conditions ,limit-stmt)))
 
 (define (make-where-id columns id)
   `(where (= ,(car columns) ,id)))
@@ -95,10 +113,12 @@
 			(query fetch-all (sql database stmt)))))
 
 (define (load-data class data)
-  (if (null? data)
-      #f
-      (map (lambda (row)
-             (let ([newobject (make class)])
-               (for-each (lambda (column model-column)
-                           (set! (slot-value newobject model-column) column)) row (list-columns newobject))
-               newobject)) data)))
+  (if (list? data)
+      (if (null? data)
+	  data
+	  (map (lambda (row)
+		 (let ([newobject (make class)])
+		   (for-each (lambda (column model-column)
+			       (set! (slot-value newobject model-column) column)) row (list-columns newobject))
+		   newobject)) data))
+      #f))
