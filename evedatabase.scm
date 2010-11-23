@@ -49,16 +49,16 @@
     (map (lambda (group)
 	   (inventories group)) (groups category))))
 
-(define (make-production-tree item #!optional acum)
+(define (make-production-tree item)
   (let ([schematic (get-schematic item)])
     (if (null? schematic)
 	item
 	(let ([inputs (get-inputs schematic)])
 	  (if (null? inputs)
 	      schematic
-	      (map
-	       (lambda (input)
-		 (make-production-tree (get-item input) acum)) inputs))))))
+	      (list item (map
+			  (lambda (input)
+			    (make-production-tree (get-item input))) inputs)))))))
 
 
 (define-method (get-inputs (schematic <planet-schematics>))
