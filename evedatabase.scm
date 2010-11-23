@@ -1,6 +1,7 @@
 (use aql)
 (use sql-de-lite)
 (use coops)
+(use coops-primitive-objects)
 
 (include "orly")
 
@@ -23,12 +24,19 @@
 (define-model <inventory-types> "invtypes"
   (typeID groupID typeName description iconID radius mass volume capacity portionSize raceID basePrice published marketGroupID chanceOfDuplicating))
 
+(define-method (print-object (obj <inventory-types>) #!optional (port (current-output-port)))
+  (fprintf port "<#inventory-types typeID:[~A] typeName:[\"~A\"]>" (slot-value obj 'typeID) (slot-value obj 'typeName)))
+
 (belongs-to <inventory-types> <inventory-groups> group foreign-key: groupID)
 (has-many <inventory-types> <inventory-type-reactions> reactions foreign-key: typeID)
 (has-many <inventory-types> <planet-schematics-typemap> typemaps foreign-key: typeID)
 
 (define-model <planet-schematics> "planetSchematics"
   (schematicID schematicName cycleTime))
+
+(define-method (print-object (obj <planet-schematics>) #!optional (port (current-output-port)))
+  (fprintf port "<#planet-schematics schematicID:[~A] schematicName:[\"~A\"]>" (slot-value obj 'schematicID) (slot-value obj 'schematicName)))
+
 
 (has-many <planet-schematics> <planet-schematics-typemap> typemaps foreign-key: schematicID)
 
