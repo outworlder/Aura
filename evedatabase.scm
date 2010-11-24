@@ -5,6 +5,8 @@
 
 (include "orly")
 
+(orly-database-url "tyr104-sqlite3-v1.db")
+
 (define-model <inventory-categories> "invcategories"
   (categoryID categoryName description iconID published))
 

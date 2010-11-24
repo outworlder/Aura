@@ -1,4 +1,4 @@
-(define *database-url*
+(define orly-database-url
   (make-parameter "tyr104-sqlite3-v1.db"))
 
 (define-class <table> ()
@@ -107,7 +107,7 @@
   #f)
 
 (define (execute-sql stmt)
-  (call-with-database (*database-url*)
+  (call-with-database (orly-database-url)
 		      (lambda (database)
 			(print "Executing: " stmt)
 			(query fetch-all (sql database stmt)))))
