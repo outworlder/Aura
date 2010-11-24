@@ -4,6 +4,7 @@
 (use intarweb)
 (use sxpath)
 (use coops)
+(use coops-primitive-objects)
 
 ;; Eve central market data
 
@@ -42,16 +43,17 @@
 ;; EVE Central parsing
 
 (define-class <market-data> ()
-  (volume average max min standard-deviation median))
+  (volume average max min standard-deviation median all buy sell))
 
 (define-class <market-item> ()
-  (typeid type data))
+  (typeid all buy sell))
 
 (define-method (print-object (obj <market-item>) #!optional (port (current-output-port)))
-  (fprintf port "<#market-item typeID:[~A] type:[\"~A\"] data:[~A]>"
+  (fprintf port "<#market-item typeID:[~A] all:[~A] buy:[~A] sell:[~A]>"
 	   (slot-value obj 'typeid)
-	   (slot-value obj 'type)
-	   (slot-value obj 'data)))
+	   (slot-value obj 'all)
+	   (slot-value obj 'buy)
+	   (slot-value obj 'sell)))
 
 (define-method (print-object (obj <market-data>) #!optional (port (current-output-port)))
   (fprintf port "<#market-data volume:[~A] average:[~A] max:[~A] min:[~A] stddev:[~A] median:[~A]>"
@@ -73,15 +75,15 @@
 
 (define (parse-market-item item)
   (let ([type-id (string->number (cadar ((sxpath '(@ id)) item)))]
-	[node ((sxpath '(*)) item)])
-    (map (lambda (subnode)
-	   (let ([type (car subnode)]
-		 [data (parse-market-data (cdr subnode))])
-	     (apply make
-		    (flatten (list <market-item>
-				   (flatten (zip '(typeid type data)
-						 (list type-id type data))))))))
-	 node)))
+	[node ((sxpath '(*)) item)]
+	[market-item (make <market-item>)])
+    (for-each (lambda (subnode)
+	       (let ([type (car subnode)]
+		     [data (parse-market-data (cdr subnode))])
+		 (set! (slot-value market-item 'typeid) type-id)
+		 (set! (slot-value market-item type) data)))
+	     node)
+    market-item))
 
 (define (parse-market-data alist)
   (apply make
