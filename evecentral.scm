@@ -22,16 +22,17 @@
    (lambda ()
      (ssax:xml->sxml (current-input-port) '()))))
 
-(define (marketstat item #!key hours minq regionlimit)
+(define (marketstat items #!key hours minq regionlimit)
   (request-api 'marketstat
-	       `((typeid . ,item)
-		 (hours . ,hours)
-		 (minQ . ,minq)
-		 (regionlimit . ,regionlimit))))
+	       (append (map (lambda (item) `(typeid . ,item)) items)
+		       `( 
+			 (hours . ,hours)
+			 (minQ . ,minq)
+			 (regionlimit . ,regionlimit)))))
 
-(define (quicklook item #!key sethours regionlimit usesystem minq)
+(define (quicklook items #!key sethours regionlimit usesystem minq)
   (request-api 'quicklook
-	       `((typeid . ,item)
+	       `( ,(map (lambda (item) `(typeid . ,item)) items)
 		 (sethours . ,sethours)
 		 (regionlimit . ,regionlimit)
 		 (usesystem . ,usesystem)
