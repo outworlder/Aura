@@ -27,7 +27,9 @@
   (typeID groupID typeName description iconID radius mass volume capacity portionSize raceID basePrice published marketGroupID chanceOfDuplicating))
 
 (define-method (print-object (obj <inventory-types>) #!optional (port (current-output-port)))
-  (fprintf port "<#inventory-types typeID:[~A] typeName:[\"~A\"]>" (slot-value obj 'typeID) (slot-value obj 'typeName)))
+  (if (slot-initialized? obj 'typeID)
+      (fprintf port "<#inventory-types typeID:[~A] typeName:[\"~A\"]>" (slot-value obj 'typeID) (slot-value obj 'typeName))
+      (fprintf port "<#inventory-types [uninitialized]>")))
 
 (belongs-to <inventory-types> <inventory-groups> group foreign-key: groupID)
 (has-many <inventory-types> <inventory-type-reactions> reactions foreign-key: typeID)
@@ -93,4 +95,3 @@
     (if (null? schematic-typemap)
 	schematic-typemap
 	(schematic (car schematic-typemap)))))
-

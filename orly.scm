@@ -93,6 +93,11 @@
 			       (car table-columns))])
 		  (load-data class (execute-sql (eval (append (make-select table-columns table-name conditions: `(where (= (quote ,key) ,id)))))))))))
 
+(define (find-all-by-string class key name)
+  (find-all class conditions: `(where (like (quote ,key) ,(string-append "%" name "%")))))
+
+(define (find-first-by-string class key name)
+  (find-all class conditions: `(where (like (quote ,key) ,(string-append "%" name "%")))))
 
 (define (make-select columns table #!key conditions id limit)
   (let ([limit-stmt (if limit
