@@ -10,21 +10,26 @@
 	(map (lambda (match)
 	       (make-production-tree match)) item))))
 
-;; Put those in 
 (define (retrieve-prices tree)
   (parse-marketstat (marketstat (map (lambda (item)
 				       (slot-value item 'typeID)) (flatten tree)))))
 
 
-(define (annotate-tree item-tree prices)
-  (if (list? item-tree)
-      (map (lambda (item)
-	     (annotate-tree item prices)) item-tree)
-      (list item-tree (find (lambda (it)
-			      (= (slot-value it 'typeid) (slot-value item-tree 'typeID))) prices))))
 
 (define (get-production-prices item-name)
   (let ([dependencies (get-item-dependencies item-name)])
     (if dependencies
 	(let ([prices (retrieve-prices dependencies)])
 	  (annotate-tree dependencies prices)))))
+
+(define (map-tree function node)
+    (if (list? node)
+      (map (lambda (element)
+	     (map-tree function element)) node)
+      (function node)))
+
+(define (annotate-tree item-tree prices)
+  (map-tree (lambda (it)
+	      (find (lambda (el)
+		      (= (slot-value el 'typeid) (slot-value it 'typeID))) prices)) item-tree))
+
