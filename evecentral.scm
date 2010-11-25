@@ -107,3 +107,9 @@
 (define (all->number list)
   (map (lambda (item)
 	 (string->number (car item))) list))
+
+(define-method (buy-price (item <market-item>))
+  (slot-value (slot-value item 'buy) 'min))
+
+(define-method (sell-price (item <market-item>))
+  (slot-value (slot-value item 'sell) 'max))
