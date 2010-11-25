@@ -61,16 +61,16 @@
     (map (lambda (group)
 	   (inventories group)) (groups category))))
 
-(define (make-production-tree item)
+(define (make-production-tree item #!key (amount 1))
   (let ([schematic (get-schematic item)])
     (if (null? schematic)
-	item
+	(list item amount)
 	(let ([inputs (get-inputs schematic)])
 	  (if (null? inputs)
 	      schematic
 	      (list item (map
 			  (lambda (input)
-			    (make-production-tree (get-item input))) inputs)))))))
+			    (make-production-tree (get-item input) amount: (slot-value input 'quantity))) inputs)))))))
 
 
 (define-method (get-inputs (schematic <planet-schematics>))
