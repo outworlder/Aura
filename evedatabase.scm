@@ -2,8 +2,7 @@
 (use sql-de-lite)
 (use coops)
 (use coops-primitive-objects)
-
-(include "orly/orly")
+(use orly)
 
 (orly-database-url "tyr104-sqlite3-v1.db")
 
