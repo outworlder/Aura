@@ -3,7 +3,7 @@
 (use coops)
 (use coops-primitive-objects)
 
-(include "orly")
+(include "orly/orly")
 
 (orly-database-url "tyr104-sqlite3-v1.db")
 
