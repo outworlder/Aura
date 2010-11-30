@@ -41,7 +41,6 @@
 (define-method (print-object (obj <planet-schematics>) #!optional (port (current-output-port)))
   (fprintf port "<#planet-schematics schematicID:[~A] schematicName:[\"~A\"]>" (slot-value obj 'schematicID) (slot-value obj 'schematicName)))
 
-
 (has-many <planet-schematics> <planet-schematics-typemap> typemaps foreign-key: schematicID)
 
 (define-model <planet-schematics-typemap> "planetschematicstypemap"
@@ -60,18 +59,6 @@
   (let ([category (get-planetary-category)])
     (map (lambda (group)
 	   (inventories group)) (groups category))))
-
-(define (make-production-tree item #!key (amount 1))
-  (let ([schematic (get-schematic item)])
-    (if (null? schematic)
-	(list item amount)
-	(let ([inputs (get-inputs schematic)])
-	  (if (null? inputs)
-	      schematic
-	      (list item (map
-			  (lambda (input)
-			    (make-production-tree (get-item input) amount: (slot-value input 'quantity))) inputs)))))))
-
 
 (define-method (get-inputs (schematic <planet-schematics>))
   (filter (lambda (item)

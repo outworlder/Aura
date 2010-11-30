@@ -8,9 +8,9 @@
 
 ;; Eve central market data
 
-(determine-proxy
- (lambda (uri)
-   (uri-reference "http://localhost:3128")))
+;; (determine-proxy
+;;  (lambda (uri)
+;;    (uri-reference "http://localhost:3128")))
 
 (define *method-urls*
   '((marketstat . "http://api.eve-central.com/api/marketstat")
