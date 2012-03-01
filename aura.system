@@ -1,0 +1,6 @@
+(require-extension system)
+
+(define-system aura
+  (compiled-scheme-file "evecentral")
+  (compiled-scheme-file "evedatabase")
+  (compiled-scheme-file "main"))
